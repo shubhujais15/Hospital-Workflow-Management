@@ -41,7 +41,7 @@ interface RecordEntry {
   checkOut: string;
 }
 
-export default function Component() {
+ export default function Component() {
   const [role, setRole] = useState<string>("nurse");
   const [checkInDate, setCheckInDate] = useState<Dayjs | null>(null);
   const [checkOutDate, setCheckOutDate] = useState<Dayjs | null>(null);
@@ -108,6 +108,7 @@ export default function Component() {
         country: locationInfo.country,
         state: locationInfo.state,
         latitude: coords.latitude.toString(),
+
         longitude: coords.longitude.toString(),
         checkIn: checkInDate.format("DD/MMM/YYYY hh:mm A"),
         checkOut: checkOutDate.format("DD/MMM/YYYY hh:mm A"),
@@ -412,18 +413,14 @@ export default function Component() {
                       } = post; // Destructure the data
                       return (
                         <TableRow key={id}>
-                          <TableCell>{id}</TableCell>
+                          {/* <TableCell>{id}</TableCell> */}
                           <TableCell>{role}</TableCell>
                           <TableCell>{country}</TableCell>
                           <TableCell>{state}</TableCell>
                           <TableCell>{latitude}</TableCell>
                           <TableCell>{longitude}</TableCell>
-                          <TableCell>
-                            {new Date(check_in).toLocaleString()}
-                          </TableCell>
-                          <TableCell>
-                            {new Date(check_out).toLocaleString()}
-                          </TableCell>
+                          <TableCell>{new Date(post["check-in"]).toLocaleString()}</TableCell>
+                          <TableCell>{new Date(post["check-out"]).toLocaleString()}</TableCell>
                         </TableRow>
                       );
                     })}
