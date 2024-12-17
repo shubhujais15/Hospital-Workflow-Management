@@ -10,7 +10,6 @@ import Input from "@mui/joy/Input";
 import Button from "@mui/joy/Button";
 import Typography from "@mui/joy/Typography";
 import Sheet from "@mui/joy/Sheet";
-import Alert from "@mui/joy/Alert";
 import Modal from "@mui/joy/Modal";
 import ModalDialog from "@mui/joy/ModalDialog";
 import RadioGroup from "@mui/joy/RadioGroup";
@@ -19,6 +18,12 @@ import IconButton from "@mui/joy/IconButton";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import Image from "next/image";
+import { toast, ToastContainer } from "react-toastify"; // Import Toast
+import "react-toastify/dist/ReactToastify.css"; // Import styles
+import ToggleButtonGroup from '@mui/joy/ToggleButtonGroup';
+import { Close } from '@mui/icons-material';
+
+
 
 interface FormData {
   emailOrphoneNumber: string;
@@ -51,13 +56,20 @@ export default function LoginPage() {
     });
   };
 
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+  };
+
   const validateForm = () => {
     const newErrors: Partial<FormData> = {};
     if (!formData.emailOrphoneNumber) {
       newErrors.emailOrphoneNumber = "Email or phone number is required";
+      toast.error(newErrors.emailOrphoneNumber); // Show error toast
     }
     if (!formData.password) {
       newErrors.password = "Password is required";
+      toast.error(newErrors.password); // Show error toast
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -67,6 +79,7 @@ export default function LoginPage() {
     e.preventDefault();
     if (validateForm()) {
       console.log("Form Data:", formData);
+      toast.success("Login successful!"); // Show success toast
       router.push("/dashboard");
     }
   };
@@ -80,17 +93,43 @@ export default function LoginPage() {
   };
 
   const handleSendOtp = () => {
-    if (inputValue) {
-      setOtpSent(true);
+    if (!inputValue) {
+      toast.error("Please enter a valid email or username"); // Show error toast
+      return;
     }
+  
+    // Validate email if selected option is email
+    if (selectedOption === "email" && !validateEmail(inputValue)) {
+      toast.error("Please enter a valid email address"); // Show invalid email error
+      return;
+    }
+  
+    setOtpSent(true);
+    toast.success("OTP Sent!"); // Show OTP sent success toast
   };
 
   const handleChangePassword = () => {
-    if (newPassword && confirmPassword && newPassword === confirmPassword) {
-      console.log("Password changed successfully");
-      setIsModalOpen(false);
-      setSuccessModalOpen(true);
+    if (!otp) {
+      toast.error("Please enter the OTP"); // Show OTP validation error
+      return;
     }
+
+    if (!newPassword || !confirmPassword) {
+      toast.error("Both password fields are required"); // Show password fields required error
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match"); // Show password mismatch error
+      return;
+    }
+
+    toast.success("Password changed successfully"); // Success toast
+    setIsModalOpen(false);
+    setSuccessModalOpen(true);
+
+    // Reset the Forget Password state
+    resetForgetPasswordState();
   };
 
   const resetForgetPasswordState = () => {
@@ -107,7 +146,6 @@ export default function LoginPage() {
     color: "#fff",
     "&:hover": { backgroundColor: "rgb(14, 125, 142)" },
   };
-  
 
   return (
     <CssVarsProvider>
@@ -161,11 +199,6 @@ export default function LoginPage() {
                 }}
                 required
               />
-              {errors.emailOrphoneNumber && (
-                <Alert color="danger" size="sm" sx={{ mt: 1 }}>
-                  {errors.emailOrphoneNumber}
-                </Alert>
-              )}
             </FormControl>
 
             <FormControl sx={{ mb: 2 }}>
@@ -181,111 +214,132 @@ export default function LoginPage() {
                   border: "1px solid #e0e0e0",
                 }}
                 endDecorator={
-                  <IconButton
-                    onClick={() => setShowPassword(!showPassword)}
-                    size="sm"
-                  >
+                  <IconButton onClick={() => setShowPassword(!showPassword)} size="sm">
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 }
                 required
               />
-              {errors.password && (
-                <Alert color="danger" size="sm" sx={{ mt: 1 }}>
-                  {errors.password}
-                </Alert>
-              )}
             </FormControl>
 
-            <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
-            <Button
-                type="submit"
-                sx={{
-                  width: "48%",
-                  borderRadius: 2,
-                  backgroundColor: "rgb(17, 156, 177)",
-                  color: "#fff",
-                  boxShadow: "0px 4px 8px rgba(17, 156, 177, 0.2)",
-                  "&:hover": { backgroundColor: "rgb(14, 125, 142)" },
-                }}
-              >
-                Login
-              </Button>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               <Button
-                variant="outlined"
+                onClick={handleForgetPassword}
+                variant="plain"
                 sx={{
-                  width: "48%",
-                  borderRadius: 2,
-                  borderColor: "rgb(17, 156, 177)",
-                  color: "rgb(17, 156, 177)",
-                  boxShadow: "0px 4px 8px rgba(17, 156, 177, 0.1)",
+                  alignSelf: "flex-end",
+                  color: "black",
+                  textTransform: "none",
+                  padding: 0,
+                  fontSize: "14px",
                   "&:hover": {
-                    backgroundColor: "rgba(17, 156, 177, 0.1)",
-                    borderColor: "rgb(14, 125, 142)",
-                    color: "rgb(14, 125, 142)",
+                    backgroundColor: "transparent",
+                    textDecoration: "underline",
                   },
                 }}
-                onClick={handleSignUp}
               >
-                Sign Up
+                Forgot Password?
               </Button>
-            </Box>
 
-            <Button
-              onClick={handleForgetPassword}
-              sx={{
-                mt: 2,
-                width: "48%",
-                // borderRadius: 5,
-                backgroundColor: "rgb(17, 156, 177)",
-                color: "#fff",
-                boxShadow: "0px 4px 8px rgba(17, 156, 177, 0.2)",
-                "&:hover": { backgroundColor: "rgb(14, 125, 142)" },
-              }}
-            >
-              Forgot Password?
-            </Button>
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                <Button
+                  type="submit"
+                  sx={{
+                    width: "48%",
+                    borderRadius: 2,
+                    backgroundColor: "rgb(17, 156, 177)",
+                    color: "#fff",
+                    boxShadow: "0px 4px 8px rgba(17, 156, 177, 0.2)",
+                    "&:hover": { backgroundColor: "rgb(14, 125, 142)" },
+                  }}
+                >
+                  Login
+                </Button>
+                <Button
+                  variant="outlined"
+                  sx={{
+                    width: "48%",
+                    borderRadius: 2,
+                    borderColor: "rgb(17, 156, 177)",
+                    color: "rgb(17, 156, 177)",
+                    boxShadow: "0px 4px 8px rgba(17, 156, 177, 0.1)",
+                    "&:hover": {
+                      backgroundColor: "rgba(17, 156, 177, 0.1)",
+                      borderColor: "rgb(14, 125, 142)",
+                      color: "rgb(14, 125, 142)",
+                    },
+                  }}
+                  onClick={handleSignUp}
+                >
+                  Sign Up
+                </Button>
+              </Box>
+            </Box>
           </form>
         </Sheet>
 
-        {/* Forget Password Modal */}
+        {/* Toast Container for notifications */}
+        <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} />
+
         <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-          <ModalDialog
-            sx={{ maxWidth: 400, borderRadius: 2, p: 3 }}
-          >
-            <Typography level="h5" sx={{ mb: 2 }}>
+          <ModalDialog sx={{ maxWidth: 400, borderRadius: 2, p: 2 }}>
+          <IconButton
+      onClick={() => {
+        setIsModalOpen(false); // Close the modal
+        resetForgetPasswordState(); // Reset form-related states
+      }}
+      sx={{
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        color: 'grey.500',
+        zIndex: 1
+      }}
+    >
+      <Close />
+    </IconButton>
+            <Typography level="h5" sx={{ mb: 0 }}>
               Reset Password
             </Typography>
-
+            {/* Horizontal line below Reset Password */}
+            <Box sx={{ borderBottom: "1px solid #ccc", mb: 2 }} />
+        
             {!otpSent ? (
               <>
-                <RadioGroup
-                  name="resetOption"
-                  defaultValue={selectedOption}
-                  onChange={(e) => setSelectedOption(e.target.value)}
-                  sx={{ mb: 2 }}
-                >
-                  <Radio value="username" label="Username" />
-                  <Radio value="email" label="Email" />
-                </RadioGroup>
-
-                <FormControl sx={{ mb: 2 }}>
-                  <Input
-                    type="text"
-                    placeholder={selectedOption === "username" ? "Enter Username" : "Enter Email"}
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    required
-                  />
-                </FormControl>
-
-                <Button
-                  onClick={handleSendOtp}
-                  sx={buttonStyles}
-                >
-                  Send OTP
+              <ToggleButtonGroup
+                color="primary"
+                value={selectedOption}
+                exclusive
+                onChange={(e, newValue) => {
+                  if (newValue) setSelectedOption(newValue);
+                }}
+                sx={{ mb: 2 }}
+              >
+                <Button value="username" sx={{ textTransform: "none" }}>
+                  Username
                 </Button>
-              </>
+                <Button value="email" sx={{ textTransform: "none" }}>
+                  Email
+                </Button>
+              </ToggleButtonGroup>
+            
+              <FormControl sx={{ mb: 2 }}>
+                <Input
+                  type="text"
+                  placeholder={selectedOption === "username" ? "Enter Username" : "Enter Email"}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  required
+                />
+              </FormControl>
+            
+              <Button
+                onClick={handleSendOtp}
+                sx={buttonStyles}
+              >
+                Send OTP
+              </Button>
+            </>
             ) : (
               <>
                 <FormControl sx={{ mb: 2 }}>
@@ -297,7 +351,7 @@ export default function LoginPage() {
                     required
                   />
                 </FormControl>
-
+        
                 <FormControl sx={{ mb: 2 }}>
                   <Input
                     type={showPassword ? "text" : "password"}
@@ -315,7 +369,7 @@ export default function LoginPage() {
                     required
                   />
                 </FormControl>
-
+        
                 <FormControl sx={{ mb: 2 }}>
                   <Input
                     type={showPassword ? "text" : "password"}
@@ -333,7 +387,7 @@ export default function LoginPage() {
                     required
                   />
                 </FormControl>
-
+        
                 <Button
                   onClick={handleChangePassword}
                   sx={buttonStyles}
@@ -344,45 +398,6 @@ export default function LoginPage() {
             )}
           </ModalDialog>
         </Modal>
-
-        {/* Success Modal */}
-        <Modal open={successModalOpen} onClose={() => setSuccessModalOpen(false)}>
-          <ModalDialog
-            sx={{ maxWidth: 400, borderRadius: 2, p: 3 }}
-          >
-            <Typography level="h5" sx={{ mb: 2, textAlign: "center" }}>
-              Password Changed Successfully
-            </Typography>
-            <Button
-              onClick={() => setSuccessModalOpen(false)}
-              sx={buttonStyles}
-            >
-              Close
-            </Button>
-          </ModalDialog>
-        </Modal>
-        <Modal open={successModalOpen} onClose={() => {
-        setSuccessModalOpen(false);
-        resetForgetPasswordState();
-      }}>
-        <ModalDialog
-          sx={{ maxWidth: 400, borderRadius: 2, p: 3 }}
-        >
-          <Typography level="h5" sx={{ mb: 2, textAlign: "center" }}>
-            Password Changed Successfully
-          </Typography>
-          <Button
-            onClick={() => {
-              setSuccessModalOpen(false);
-              resetForgetPasswordState();
-            }}
-            sx={buttonStyles} 
-          >
-            Close
-          </Button>
-        </ModalDialog>
-      </Modal>
-
       </Box>
     </CssVarsProvider>
   );
