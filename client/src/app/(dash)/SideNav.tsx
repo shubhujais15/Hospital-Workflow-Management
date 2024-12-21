@@ -1,100 +1,129 @@
-'use client'
+import * as React from 'react';
+import { CssVarsProvider, useColorScheme } from '@mui/joy/styles';
+import Sheet from '@mui/joy/Sheet';
+import List from '@mui/joy/List';
+import ListItem from '@mui/joy/ListItem';
+import ListItemButton from '@mui/joy/ListItemButton';
+import IconButton from '@mui/joy/IconButton';
+import Typography from '@mui/joy/Typography';
+import { Home, History, User2, LogOut, Code, ChevronLeft, ChevronRight } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
-import * as React from 'react'
-import { usePathname } from 'next/navigation'
-import NextLink from 'next/link'
-import Box from '@mui/joy/Box'
-import List from '@mui/joy/List'
-import ListItem from '@mui/joy/ListItem'
-import ListItemButton from '@mui/joy/ListItemButton'
-import ListItemContent from '@mui/joy/ListItemContent'
-import Typography from '@mui/joy/Typography'
-import IconButton from '@mui/joy/IconButton'
-import Sheet from '@mui/joy/Sheet'
-import { Home, Users, Settings, Menu } from 'lucide-react'
+export default function Sidebar() {
+  const [expanded, setExpanded] = React.useState(true);
+  const pathname = usePathname();
 
-type NavItem = {
-  title: string
-  path: string
-  icon: React.ElementType
-}
-
-const navItems: NavItem[] = [
-  { title: 'Home', path: '/dashboard', icon: Home },
-  { title: 'Users', path: '/profile', icon: Users },
-  { title: 'Settings', path: '/settings', icon: Settings },
-]
-
-export default function SideNav() {
-  const pathname = usePathname()
-  const [open, setOpen] = React.useState(false)
+  const navItems = [
+    { label: 'Home', icon: Home, path: '/dashboard' },
+    { label: 'Profile', icon: User2, path: '/profile' },
+    { label: 'History', icon: History, path: '/history' },
+  ];
 
   return (
-    <React.Fragment>
-      <Sheet
-        className="SideNav"
-        sx={{
-          display: { xs: 'none', md: 'flex' },
-          flexDirection: 'column',
-          width: 240,
-          borderRight: '1px solid',
-          borderColor: 'divider',
-        }}
-      >
-        <NavContent pathname={pathname} />
-      </Sheet>
-      <IconButton
-        onClick={() => setOpen(true)}
-        sx={{ display: { xs: 'flex', md: 'none' }, position: 'fixed', top: 8, left: 8 }}
-      >
-        <Menu />
-      </IconButton>
-      <Sheet
-        sx={{
-          display: { xs: 'flex', md: 'none' },
-          position: 'fixed',
-          top: 0,
-          left: open ? 0 : -240,
-          width: 240,
-          height: '100dvh',
-          zIndex: 9999,
-          transition: 'left 0.3s',
-        }}
-      >
-        <NavContent pathname={pathname} />
-        <IconButton
-          onClick={() => setOpen(false)}
-          sx={{ position: 'absolute', top: 8, right: 8 }}
+    <Sheet
+      className="Sidebar"
+      sx={{
+        position: { xs: 'fixed', md: 'sticky' },
+        transform: { xs: `translateX(${expanded ? 0 : '-100%'})`, md: 'none' },
+        transition: 'transform 0.4s, width 0.4s',
+        zIndex: 10000,
+        height: '100dvh',
+        width: expanded ? '240px' : '64px',
+        top: 0,
+        p: 2,
+        flexShrink: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2,
+        borderRight: '1px solid',
+        borderColor: 'divider',
+        backgroundColor: 'background.surface',
+      }}
+    >
+      {/* Logo and brand */}
+      <div className="logo-section">
+        <ListItem
+          sx={{
+            p: 0,
+            justifyContent: expanded ? 'space-between' : 'center',
+          }}
         >
-          <Menu />
-        </IconButton>
-      </Sheet>
-    </React.Fragment>
-  )
-}
-
-function NavContent({ pathname }: { pathname: string }) {
-  return (
-    <List sx={{ flexGrow: 1 }}>
-      <ListItem>
-        <Typography level="h4" component="h1">
-          Navigation
-        </Typography>
-      </ListItem>
-      {navItems.map((item) => (
-        <ListItem key={item.path}>
-          <ListItemButton
-            component={NextLink}
-            href={item.path}
-            selected={pathname === item.path}
+          <Typography
+            component="h1"
+            fontSize="lg"
+            fontWeight="lg"
+            startDecorator={<ChevronLeft />}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              width: expanded ? 'auto' : '40px',
+              overflow: 'hidden',
+            }}
           >
-            <item.icon />
-            <ListItemContent>
-              <Typography>{item.title}</Typography>
-            </ListItemContent>
+            {expanded ? 'Navigation' : 'D'}
+          </Typography>
+          <IconButton
+            variant="plain"
+            color="neutral"
+            onClick={() => setExpanded(!expanded)}
+            sx={{ display: { xs: 'none', md: 'flex' } }}
+          >
+            {<ChevronRight />}
+          </IconButton>
+        </ListItem>
+      </div>
+
+      {/* Navigation items */}
+      <List
+        sx={{
+          '--ListItem-radius': '8px',
+          mt: 1,
+          flexGrow: 1,
+        }}
+      >
+        {navItems.map((item) => (
+          <ListItem key={item.label}>
+            <ListItemButton
+              component={Link}
+              href={item.path}
+              selected={pathname === item.path}
+              sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 2 }}
+            >
+              <item.icon />
+              {expanded && <Typography>{item.label}</Typography>}
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+
+      {/* Logout section */}
+      <List
+        sx={{
+          '--ListItem-radius': '8px',
+          mt: 'auto',
+          borderTop: '1px solid',
+          borderColor: 'divider',
+          pt: 2,
+        }}
+      >
+        <ListItem>
+          <ListItemButton
+            component={Link}
+            href="/"
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              '&:hover': { color: 'danger.plainColor' },
+            }}
+          >
+            <LogOut />
+            {expanded && <Typography>Logout</Typography>}
           </ListItemButton>
         </ListItem>
-      ))}
-    </List>
-  )
+      </List>
+    </Sheet>
+  );
 }
